@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalisationHoraire_NET6", "LocalisationHoraire_NET6\LocalisationHoraire_NET6.csproj", "{522F01A6-BD81-43A1-A091-FC6B9AC3ED81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalisationHoraire_NET6_lib", "LocalisationHoraire_NET6_lib\LocalisationHoraire_NET6_lib.csproj", "{2A7BFF71-E5D0-4207-9E61-04146E3EF366}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{522F01A6-BD81-43A1-A091-FC6B9AC3ED81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{522F01A6-BD81-43A1-A091-FC6B9AC3ED81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{522F01A6-BD81-43A1-A091-FC6B9AC3ED81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{522F01A6-BD81-43A1-A091-FC6B9AC3ED81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A7BFF71-E5D0-4207-9E61-04146E3EF366}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A7BFF71-E5D0-4207-9E61-04146E3EF366}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A7BFF71-E5D0-4207-9E61-04146E3EF366}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A7BFF71-E5D0-4207-9E61-04146E3EF366}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F622DBE6-B68C-41C6-AD88-5E33E8511D5F}
+	EndGlobalSection
+EndGlobal

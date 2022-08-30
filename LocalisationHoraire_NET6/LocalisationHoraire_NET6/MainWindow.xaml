@@ -1,0 +1,17 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LocalisationHoraire_NET6"
+        xmlns:LocalisationHoraire_NET6_lib="clr-namespace:LocalisationHoraire_NET6_lib;assembly=LocalisationHoraire_NET6_lib" x:Class="LocalisationHoraire_NET6.MainWindow"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+
+        <LocalisationHoraire_NET6_lib:LocalisationHoraire HorizontalAlignment="Left" Margin="257,71,0,0" Height="238" VerticalAlignment="Top"
+                                                          x:Name="sel" _color="Gray" _thickness="10"
+                                        _markColor="White" _markStrokeColor="Black" _markThickness="2" 
+                                               />
+    </Grid>
+</Window>

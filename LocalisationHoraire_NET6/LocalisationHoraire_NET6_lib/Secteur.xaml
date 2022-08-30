@@ -1,0 +1,50 @@
+﻿<UserControl x:Class="LocalisationHoraire_NET6_lib.Secteur"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LocalisationHoraire_NET6_lib"
+             mc:Ignorable="d" 
+            d:DesignHeight="200" d:DesignWidth="200">
+    <Grid>
+        <Grid.RenderTransform>
+            <RotateTransform CenterX="100" CenterY="100" Angle="{Binding _angle}" />
+        </Grid.RenderTransform>
+
+        <Path Visibility="{Binding _arc_antiHoraire_visibility}" 
+              Stroke="{Binding _arc_color}" 
+              StrokeThickness="{Binding _arc_thickness}" 
+              Data="M100.5,10 A100,100 0 0 0 76,13"/>
+
+        <Path Visibility="{Binding _arc_Horaire_visibility}" 
+              Stroke="{Binding _arc_color}" 
+              StrokeThickness="{Binding _arc_thickness}" 
+              Data="M124,13 A100,100 0 0 0 99.5,10"/>
+
+        <Path Visibility="{Binding _mark1_Visibility}" Stroke="{Binding _mark1_StrokeColor}" 
+              StrokeThickness="{Binding _mark1_Thickness}" Fill="{Binding _mark1_Color}" >
+            <Path.Data>
+                <EllipseGeometry 
+                    Center="100, 10" 
+                    RadiusX="8" 
+                    RadiusY="8" />
+            </Path.Data>
+        </Path>
+
+        <Path Visibility="{Binding _mark2_Visibility}" Stroke="{Binding _mark2_StrokeColor}" 
+              StrokeThickness="{Binding _mark2_Thickness}" Fill="{Binding _mark2_Color}" >
+            <Path.Data>
+                <EllipseGeometry 
+                    Center="100, 10" 
+                    RadiusX="8" 
+                    RadiusY="8" />
+            </Path.Data>
+        </Path>
+
+        <Polygon Fill="Transparent" Points="100,100 73,0 127,0" 
+                 MouseEnter="_MouseEnter"
+                 MouseLeave="_MouseLeave" 
+                 MouseDown="_MouseDown"/>
+
+    </Grid>
+</UserControl>

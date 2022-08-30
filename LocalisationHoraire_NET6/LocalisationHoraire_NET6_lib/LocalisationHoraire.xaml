@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="LocalisationHoraire_NET6_lib.LocalisationHoraire"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LocalisationHoraire_NET6_lib"
+             mc:Ignorable="d" 
+ d:DesignHeight="200" d:DesignWidth="200" Loaded="_Composant_Loaded"
+             x:Name="uc">
+    <Viewbox>
+        <Grid>
+            <Canvas Width="200" Height="200">
+                <Ellipse Stroke="Black" Height="180" Width="180" Margin="10" />
+
+                <local:Secteur x:Name="S1" _arc_color="red" _heure="1" _arc_thickness="5" />
+                <local:Secteur x:Name="S2" _arc_color="red" _heure="2" _arc_thickness="5" />
+                <local:Secteur x:Name="S3" _arc_color="Yellow" _heure="3" _arc_thickness="5" />
+                <local:Secteur x:Name="S4" _arc_color="red" _heure="4" _arc_thickness="5" />
+                <local:Secteur x:Name="S5" _arc_color="red" _heure="5" _arc_thickness="5" />
+                <local:Secteur x:Name="S6" _arc_color="Yellow" _heure="6" _arc_thickness="5" />
+                <local:Secteur x:Name="S7" _arc_color="red" _heure="7" _arc_thickness="5" />
+                <local:Secteur x:Name="S8" _arc_color="red" _heure="8" _arc_thickness="5" />
+                <local:Secteur x:Name="S9" _arc_color="Yellow" _heure="9" _arc_thickness="5" />
+                <local:Secteur x:Name="S10" _arc_color="red" _heure="10" _arc_thickness="5" />
+                <local:Secteur x:Name="S11" _arc_color="red" _heure="11" _arc_thickness="5" />
+                <local:Secteur x:Name="S12" _arc_color="Yellow" _heure="12" _arc_thickness="5" />
+            </Canvas>
+
+        </Grid>
+    </Viewbox>
+</UserControl>
