@@ -12,6 +12,7 @@
         <LocalisationHoraire_NET6_lib:LocalisationHoraire HorizontalAlignment="Left" Margin="257,71,0,0" Height="238" VerticalAlignment="Top"
                                                           x:Name="sel" _color="Gray" _thickness="10"
                                         _markColor="White" _markStrokeColor="Black" _markThickness="2" 
+                                                          _SelectedHourChange="Sel__SelectedHourChange"
                                                />
     </Grid>
 </Window>

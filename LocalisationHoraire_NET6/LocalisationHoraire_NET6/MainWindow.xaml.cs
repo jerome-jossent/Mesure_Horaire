@@ -15,18 +15,11 @@ using System.Windows.Shapes;
 
 namespace LocalisationHoraire_NET6
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
-            sel._SelectedHourChange += Sel__SelectedHourChange;
-
-            DataContext = this;
-            //sel_manu._LINK(sel);
         }
 
         private void Sel__SelectedHourChange(object sender, EventArgs e)
