@@ -57,8 +57,10 @@ namespace LocalisationHoraire_NET6_lib
         Dictionary<int, Secteur> secteurs;
         List<Secteur> concerned_values;
         int start, end;
-        int temp_end;
-        int senshoraire;
+        //int temp_end;
+        //int senshoraire;
+        bool loaded;
+        public EventHandler _Loaded;
 
         #region VALEURS        
         public int _code_Emp1
@@ -221,8 +223,6 @@ namespace LocalisationHoraire_NET6_lib
         double markSize = 8;
         #endregion
 
-        bool loaded;
-        public EventHandler _Loaded;
 
         public LocalisationHoraire()
         {
@@ -271,10 +271,6 @@ namespace LocalisationHoraire_NET6_lib
 
                 s._arc_Horaire_actif = false;
                 s._arc_antiHoraire_actif = false;
-
-                //s._SecteurEnter += SecteurEnter;
-                //s._SecteurClick += SecteurClick;
-                //s._SecteurLeave += SecteurLeave;
             }
 
             _Reset();
@@ -292,7 +288,7 @@ namespace LocalisationHoraire_NET6_lib
             concerned_values = new List<Secteur>();
             start = 0;
             end = 0;
-            temp_end = 0;
+            //temp_end = 0;
             step = 0;
         }
 
@@ -306,8 +302,6 @@ namespace LocalisationHoraire_NET6_lib
             if (!loaded) return;
 
             concerned_values = new List<Secteur>();
-            //int senshoraire = (val1 < val2) ? 1 : -1;
-            //senshoraire = (val1 - val2 < 0) ? 1 : -1;
             start = val1;
             end = val2;
 
@@ -332,32 +326,29 @@ namespace LocalisationHoraire_NET6_lib
 
             //_ActiveSecteurs(false);
             _ActiveSecteurs();
-
-            //_code_Emp1 = start;
-            //_code_Emp2 = end;
         }
 
-        void _ActiveSecteurs(bool full = true)
+        void _ActiveSecteurs()//bool full = true)
         {
             //algo : avec un premier élément (=start)
             //-> le 2ème est voisin ?
 
-            if (start != 0 && temp_end != 0 && temp_end != start)
-            {
-                int diff = start - temp_end;
-                int diff_abs = Math.Abs(diff);
-                senshoraire = 0;
-                if (diff_abs < 3)
-                    senshoraire = (diff < 0) ? 1 : -1;
-                else if (diff_abs > 9)
-                    senshoraire = (diff > 0) ? 1 : -1;
-            }
+            //if (start != 0 && temp_end != 0 && temp_end != start)
+            //{
+            //    int diff = start - temp_end;
+            //    int diff_abs = Math.Abs(diff);
+            //    senshoraire = 0;
+            //    if (diff_abs < 3)
+            //        senshoraire = (diff < 0) ? 1 : -1;
+            //    else if (diff_abs > 9)
+            //        senshoraire = (diff > 0) ? 1 : -1;
+            //}
 
             if (concerned_values.Count > 1)
             {
                 int val1 = concerned_values[0]._heure;
-                int val2 = concerned_values[1]._heure;
-                int diff = val1 - val2;
+                //int val2 = concerned_values[1]._heure;
+                //int diff = val1 - val2;
                 int val_last = (end == 0) ? concerned_values[concerned_values.Count - 1]._heure : end;
 
                 foreach (Secteur s in secteurs.Values)
@@ -379,20 +370,20 @@ namespace LocalisationHoraire_NET6_lib
                     }
                 }
 
-                if (full)
-                {
-                    if (senshoraire > 0)
-                    {
-                        _code_Emp1 = start;
-                        _code_Emp2 = (end == 0) ? val_last : end;
-                    }
+                //if (full)
+                //{
+                //    if (senshoraire > 0)
+                //    {
+                //        _code_Emp1 = start;
+                //        _code_Emp2 = (end == 0) ? val_last : end;
+                //    }
 
-                    if (senshoraire < 0)
-                    {
-                        _code_Emp2 = start;
-                        _code_Emp1 = (end == 0) ? val_last : end;
-                    }
-                }
+                //    if (senshoraire < 0)
+                //    {
+                //        _code_Emp2 = start;
+                //        _code_Emp1 = (end == 0) ? val_last : end;
+                //    }
+                //}
             }
             else if (concerned_values.Count == 1)
             {
@@ -450,11 +441,12 @@ namespace LocalisationHoraire_NET6_lib
 
             if (_debug.Visibility == Visibility.Visible)
                 _debug.Text =
-                    //X + " \t " + Y + "\n" + 
+                    m.X.ToString("F2") + " \t " + m.Y.ToString("F2") + "\n" + 
+                    X + " \t " + Y + "\n" + 
                     angle.ToString("F1") + "°\n" +
                     angle_h.ToString("F2") + "\n" +
                     angle_h0 + "h\n" +
-
+                    start + "h → " + end + "h\n" +
                     start * 30 + " \t " + end * 30 + "\n"
                     ;
 
@@ -495,6 +487,8 @@ namespace LocalisationHoraire_NET6_lib
                         else
                             _SetValue(B, A);
                         break;
+                    case 3:
+                        break;
                 }
                 previous_sector = s;
             }
@@ -520,126 +514,28 @@ namespace LocalisationHoraire_NET6_lib
                 case 0:
                     s._arc_antiHoraire_actif = true;
                     s._arc_Horaire_actif = true;
-                    step = 1;
                     start = s._heure;
-                    // _ActiveSecteurs();
+                    step = 1;
                     break;
+
                 case 1:
                     s._mark2_Visibility = Visibility.Visible;
                     end = s._heure;
                     step = 2;
-
-                    // _SetValue(start, s._heure);
                     break;
+
                 case 2:
                     //validation du sens
+                    secteurs[start]._mark1_Visibility = Visibility.Hidden;
+                    secteurs[start]._mark2_Visibility = Visibility.Hidden;
 
+                    secteurs[end]._mark1_Visibility = Visibility.Hidden;
+                    secteurs[end]._mark2_Visibility = Visibility.Hidden;
 
-                    //if (permutation)
-                    //{
-                    //    int tmp = start;
-                    //    start = end;
-                    //    end = tmp;
-                    //}
                     step = 3;
-
                     _SelectedHourChange?.Invoke(new int[2] { start, end }, null);
                     break;
             }
-        }
-
-        #region UC Methods
-        void SecteurClick(object sender, EventArgs e)
-        {
-            Secteur s = GetSecteur(sender);
-
-            //click droit = reset
-            if (((MouseButtonEventArgs)e).RightButton == MouseButtonState.Pressed)
-            {
-                _Reset();
-                //redessine le marqueur sur ce secteur
-                s._mark1_Visibility = Visibility.Visible;
-                _SelectedHourChange?.Invoke(new int[2] { 0, 0 }, null);
-                return;
-            }
-
-            //click gauche => step by step
-            switch (step)
-            {
-                case 0:
-                    s._arc_antiHoraire_actif = true;
-                    s._arc_Horaire_actif = true;
-                    step = 1;
-                    start = s._heure;
-                    _ActiveSecteurs();
-                    break;
-                case 1:
-                    s._mark2_Visibility = Visibility.Visible;
-                    //s._arc_actif = true;
-                    end = s._heure;
-                    step = 2;
-
-                    _SetValue(start, s._heure);
-                    break;
-                case 2:
-                    //validation du sens
-
-
-                    //if (permutation)
-                    //{
-                    //    int tmp = start;
-                    //    start = end;
-                    //    end = tmp;
-                    //}
-
-                    _SetValue(start, end);
-                    _SelectedHourChange?.Invoke(new int[2] { start, end }, null);
-                    break;
-            }
-        }
-
-        void SecteurEnter(object sender, EventArgs e)
-        {
-            //montrer mark
-            Secteur s = GetSecteur(sender);
-            switch (step)
-            {
-                case 0:
-                    s._mark1_Visibility = Visibility.Visible;
-                    break;
-
-                case 1:
-                    s._mark2_Visibility = Visibility.Visible;
-                    if (concerned_values.Contains(s))
-                        concerned_values.Remove(previous_sector);
-                    else
-                        concerned_values.Add(s);
-
-                    // _SetValue(start, s._heure);
-                    temp_end = s._heure;
-                    _ActiveSecteurs(false);
-                    break;
-            }
-            previous_sector = s;
-        }
-
-        void SecteurLeave(object sender, EventArgs e)
-        {
-            //retirer mark
-            Secteur s = GetSecteur(sender);
-            switch (step)
-            {
-                case 0:
-                    s._mark1_Visibility = Visibility.Hidden;
-                    break;
-
-                case 1:
-                    s._mark2_Visibility = Visibility.Hidden;
-                    break;
-            }
-            _ActiveSecteurs();
-        }
-
-        #endregion
+        }      
     }
 }

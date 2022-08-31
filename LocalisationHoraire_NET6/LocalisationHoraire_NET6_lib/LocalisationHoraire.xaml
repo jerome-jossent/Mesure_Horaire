@@ -9,7 +9,7 @@
              x:Name="uc">
     <Viewbox>
         <Grid>
-            <TextBlock x:Name="_debug" Text="debug" 
+            <TextBlock x:Name="_debug" Text="debug" TextAlignment="Center"
                        VerticalAlignment="Center" HorizontalAlignment="Center"
                        />            <!--Visibility="Hidden"-->
                         
