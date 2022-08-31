@@ -190,6 +190,18 @@ namespace LocalisationHoraire_NET6_lib
         double mark1_Thickness;
         #endregion
 
+
+        public double _mark_Size
+        {
+            get => mark_Size; set
+            {
+                if (mark_Size == value) return;
+                mark_Size = value;
+                OnPropertyChanged("_mark_Size");
+            }
+        }
+        double mark_Size;
+
         #region MARK 2
         public Visibility _mark2_Visibility
         {

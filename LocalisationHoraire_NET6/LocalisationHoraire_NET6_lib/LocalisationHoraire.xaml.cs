@@ -34,7 +34,6 @@ namespace LocalisationHoraire_NET6_lib
     //2°) point 2
     //3°) sens
 
-
     public partial class LocalisationHoraire : UserControl, INotifyPropertyChanged
     {
         public event EventHandler<EventArgs> _SelectedHourChange;
@@ -52,7 +51,7 @@ namespace LocalisationHoraire_NET6_lib
         //si clik droit on reset, si clik gauche :
         //1er  click 1ère heure
         //2nd  click 2ème heure
-        //3ème click sens
+        //3ème click sens : horaire/antihoraire ou 1->2/2->1
         int step;
 
         Dictionary<int, Secteur> secteurs;
@@ -208,6 +207,18 @@ namespace LocalisationHoraire_NET6_lib
             }
         }
         double markThickness = 1;
+
+        public double _markSize
+        {
+            get => markSize;
+            set
+            {
+                if (markSize == value) return;
+                markSize = value;
+                OnPropertyChanged("_markSize");
+            }
+        }
+        double markSize = 8;
         #endregion
 
         bool loaded;
@@ -255,6 +266,8 @@ namespace LocalisationHoraire_NET6_lib
                 s._mark2_Color = _markColor;
                 s._mark2_StrokeColor = _markStrokeColor;
                 s._mark2_Thickness = _markThickness;
+
+                s._mark_Size = _markSize;
 
                 s._arc_Horaire_actif = false;
                 s._arc_antiHoraire_actif = false;
@@ -317,7 +330,8 @@ namespace LocalisationHoraire_NET6_lib
                 }
             }
 
-            _ActiveSecteurs(false);
+            //_ActiveSecteurs(false);
+            _ActiveSecteurs();
 
             //_code_Emp1 = start;
             //_code_Emp2 = end;
@@ -337,63 +351,26 @@ namespace LocalisationHoraire_NET6_lib
                     senshoraire = (diff < 0) ? 1 : -1;
                 else if (diff_abs > 9)
                     senshoraire = (diff > 0) ? 1 : -1;
-
             }
-
 
             if (concerned_values.Count > 1)
             {
                 int val1 = concerned_values[0]._heure;
                 int val2 = concerned_values[1]._heure;
                 int diff = val1 - val2;
-                int diff_abs = Math.Abs(diff);
                 int val_last = (end == 0) ? concerned_values[concerned_values.Count - 1]._heure : end;
-
-                //senshoraire = 0;
-                //if (diff_abs < 3)
-                //    senshoraire = (diff < 0) ? 1 : -1;
-                //else if (diff_abs > 9)
-                //    senshoraire = (diff > 0) ? 1 : -1;
-
-                //_sens_horaire.Visibility = (senshoraire == 1) ? Visibility.Visible : Visibility.Hidden;
-                //_sens_antihoraire.Visibility = (senshoraire == -1) ? Visibility.Visible : Visibility.Hidden;
-
-                if (senshoraire != 0)
-                {
-                    int val = val1;
-                    int index = 1;
-                    //rempli les trous ??
-                    while (val != val_last)
-                    {
-                        if (!concerned_values.Contains(secteurs[val]))
-                        {
-                            try
-                            {
-                                concerned_values.Insert(index, secteurs[val]);
-                            }
-                            catch (Exception ex)
-                            {
-                                val = val;
-                            }
-                        }
-                        val += senshoraire;
-                        if (val == 13) val = 1;
-                        if (val == 0) val = 12;
-                        index++;
-                    }
-                }
 
                 foreach (Secteur s in secteurs.Values)
                 {
                     if (s._heure == val1)
                     {
-                        s._arc_Horaire_actif = concerned_values.Contains(s) && (senshoraire == 1);
-                        s._arc_antiHoraire_actif = concerned_values.Contains(s) && (senshoraire == -1);
+                        s._arc_Horaire_actif = concerned_values.Contains(s);
+                        s._arc_antiHoraire_actif = false;
                     }
                     else if (s._heure == val_last)
                     {
-                        s._arc_Horaire_actif = concerned_values.Contains(s) && (senshoraire == -1);
-                        s._arc_antiHoraire_actif = concerned_values.Contains(s) && (senshoraire == 1);
+                        s._arc_Horaire_actif = false;
+                        s._arc_antiHoraire_actif = concerned_values.Contains(s);
                     }
                     else
                     {
@@ -472,13 +449,13 @@ namespace LocalisationHoraire_NET6_lib
             if (angle_h0 == 0) angle_h0 = 12;
 
             if (_debug.Visibility == Visibility.Visible)
-                _debug.Text = 
+                _debug.Text =
                     //X + " \t " + Y + "\n" + 
-                    angle.ToString("F1") + "°\n" + 
-                    angle_h.ToString("F2") + "\n" + 
+                    angle.ToString("F1") + "°\n" +
+                    angle_h.ToString("F2") + "\n" +
                     angle_h0 + "h\n" +
 
-                    start*30 + " \t " + end*30 + "\n"
+                    start * 30 + " \t " + end * 30 + "\n"
                     ;
 
             Secteur s = GetSecteur();
@@ -500,15 +477,23 @@ namespace LocalisationHoraire_NET6_lib
                         break;
 
                     case 2:
-                        if (start * 30 < angle && angle < end * 30)
-                            //    _debug.Foreground = new SolidColorBrush(Colors.Red);
-                            //else
-                            //    _debug.Foreground = new SolidColorBrush(Colors.Green);
-                            _SetValue(start, end);
+                        int A, B;
+                        if (start < end)
+                        {
+                            A = start;
+                            B = end;
+                        }
                         else
-                            _SetValue(end, start);
+                        {
+                            B = start;
+                            A = end;
+                        }
 
-
+                        // A -> B ?
+                        if (A * 30 < angle && angle < B * 30)
+                            _SetValue(A, B);
+                        else
+                            _SetValue(B, A);
                         break;
                 }
                 previous_sector = s;
@@ -556,6 +541,7 @@ namespace LocalisationHoraire_NET6_lib
                     //    start = end;
                     //    end = tmp;
                     //}
+                    step = 3;
 
                     _SelectedHourChange?.Invoke(new int[2] { start, end }, null);
                     break;

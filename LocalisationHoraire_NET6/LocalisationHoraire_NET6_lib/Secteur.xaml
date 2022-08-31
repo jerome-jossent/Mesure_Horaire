@@ -26,8 +26,8 @@
             <Path.Data>
                 <EllipseGeometry 
                     Center="100, 10" 
-                    RadiusX="8" 
-                    RadiusY="8" />
+                    RadiusX="{Binding _mark_Size}" 
+                    RadiusY="{Binding _mark_Size}" />
             </Path.Data>
         </Path>
 
@@ -36,8 +36,8 @@
             <Path.Data>
                 <EllipseGeometry 
                     Center="100, 10" 
-                    RadiusX="8" 
-                    RadiusY="8" />
+                    RadiusX="{Binding _mark_Size}" 
+                    RadiusY="{Binding _mark_Size}" />
             </Path.Data>
         </Path>
 

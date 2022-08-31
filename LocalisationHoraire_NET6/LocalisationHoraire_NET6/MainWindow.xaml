@@ -6,12 +6,14 @@
         xmlns:local="clr-namespace:LocalisationHoraire_NET6"
         xmlns:LocalisationHoraire_NET6_lib="clr-namespace:LocalisationHoraire_NET6_lib;assembly=LocalisationHoraire_NET6_lib" x:Class="LocalisationHoraire_NET6.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="350" Width="300">
     <Grid>
 
-        <LocalisationHoraire_NET6_lib:LocalisationHoraire HorizontalAlignment="Left" Margin="257,71,0,0" Height="238" VerticalAlignment="Top"
-                                                          x:Name="sel" _color="Gray" _thickness="10"
-                                        _markColor="White" _markStrokeColor="Black" _markThickness="2" 
+        <LocalisationHoraire_NET6_lib:LocalisationHoraire HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          x:Name="sel" 
+                                                          _color="Gray" 
+                                                          _thickness="10"
+                                                          _markColor="White" _markStrokeColor="Black" _markThickness="4" _markSize="10"
                                                           _SelectedHourChange="Sel__SelectedHourChange"
                                                />
     </Grid>

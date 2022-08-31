@@ -12,8 +12,7 @@
             <TextBlock x:Name="_debug" Text="debug" 
                        VerticalAlignment="Center" HorizontalAlignment="Center"
                        />            <!--Visibility="Hidden"-->
-            
-            
+                        
             <Canvas Width="200" Height="200" x:Name="_canvas" MouseMove="Canvas_MouseMove" MouseDown="Canvas_MouseDown">
                 <Ellipse Stroke="Black" Height="180" Width="180" Margin="10" />
                 <local:Secteur x:Name="S1" _arc_color="red" _heure="1" _arc_thickness="5" />
@@ -28,11 +27,7 @@
                 <local:Secteur x:Name="S10" _arc_color="red" _heure="10" _arc_thickness="5" />
                 <local:Secteur x:Name="S11" _arc_color="red" _heure="11" _arc_thickness="5" />
                 <local:Secteur x:Name="S12" _arc_color="Yellow" _heure="12" _arc_thickness="5" />
-
             </Canvas>
-
-            
-            
         </Grid>
     </Viewbox>
 </UserControl>
