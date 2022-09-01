@@ -6,15 +6,27 @@
         xmlns:local="clr-namespace:LocalisationHoraire_NET6"
         xmlns:LocalisationHoraire_NET6_lib="clr-namespace:LocalisationHoraire_NET6_lib;assembly=LocalisationHoraire_NET6_lib" x:Class="LocalisationHoraire_NET6.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="300">
-    <Grid>
-
+        Title="MainWindow" Height="auto" Width="300">
+    <StackPanel Orientation="Vertical">
         <LocalisationHoraire_NET6_lib:LocalisationHoraire HorizontalAlignment="Center" VerticalAlignment="Center"
                                                           x:Name="sel" 
                                                           _color="Gray" 
                                                           _thickness="10"
                                                           _markColor="White" _markStrokeColor="Black" _markThickness="4" _markSize="10"
-                                                          _SelectedHourChange="Sel__SelectedHourChange"
+                                                          _code_Emp1="{Binding _val1, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                                          _code_Emp2="{Binding _val2, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                                />
-    </Grid>
+        <!--_SelectedHourChange="Sel__SelectedHourChange"-->
+
+
+        <Grid >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" x:Name="_cbx_1" SelectedValue="{Binding _val1, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+            <ComboBox Grid.Column="1" x:Name="_cbx_2" SelectedValue="{Binding _val2, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+        </Grid>
+
+    </StackPanel>
 </Window>

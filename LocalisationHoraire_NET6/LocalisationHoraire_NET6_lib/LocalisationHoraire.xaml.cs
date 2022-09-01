@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LocalisationHoraire_NET6_lib
 {
@@ -29,15 +22,23 @@ namespace LocalisationHoraire_NET6_lib
     //  avec des secteurs extrêmes qui n'afficheront que le morceau compris dans la zone
     //  ex : 6h->9h est différent de 9h->6h (on peut même dire opposé)
 
-    //définition en plusieurs temps :
-    //1°) point 1
-    //2°) point 2
-    //3°) sens
+    //affichge de "mark" curseur rond permettant de montrer la sélection actuelle à l'utilisateur
+
+    //étape d'utilisation de l'outil
+    //si clik droit on reset, si clik gauche :
+    //1er  click 1ère heure
+    //2nd  click 2ème heure
+    //3ème click sens : horaire/antihoraire ou 1->2/2->1
+
+    // une séquence de 4 états (qui s'incrémente au "click") :
+    //- 0 : reset/vierge/première utilisation       | en attente de la sélection du premier point
+    //- 1 : premier point sélectionné               | en attente de la sélection du second point
+    //- 2 : second point sélectionné                | en attente de la sélection de la zone
+    //- 3 : zone sélectionnée                       | sélection terminée
 
     public partial class LocalisationHoraire : UserControl, INotifyPropertyChanged
     {
-        public event EventHandler<EventArgs> _SelectedHourChange;
-
+        #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
@@ -45,22 +46,27 @@ namespace LocalisationHoraire_NET6_lib
             if (handler != null)
                 handler(this, new PropertyChangedEventArgs(propertyName));
         }
-        Secteur previous_sector;
+        #endregion
 
-        //étape d'utilisation de l'outil
-        //si clik droit on reset, si clik gauche :
-        //1er  click 1ère heure
-        //2nd  click 2ème heure
-        //3ème click sens : horaire/antihoraire ou 1->2/2->1
+        public event EventHandler<EventArgs> _SelectedHourChange;
+        public EventHandler _Loaded;
+
+        int start, end;
         int step;
+        bool loaded;
+
+        bool debug = true;
 
         Dictionary<int, Secteur> secteurs;
         List<Secteur> concerned_values;
-        int start, end;
-        //int temp_end;
-        //int senshoraire;
-        bool loaded;
-        public EventHandler _Loaded;
+        Secteur previous_sector;
+
+        //mesures par rapport à la position de la souris
+        Point mouse_position; //par rapport au du canvas (origine en haut à gauche avec X augmentant en allant sur la droite et Y augmentant en allant vers le bas)
+        double X, Y; // position de la souris par rapport au centre du canvas (origine au centre avec X augmentant en allant sur la droite et Y augmentant en allant vers le haut)
+        double angle; // exprimé en degrés, 0 quand la souris est au milieu en haut du cadran, augmente dans le sens horaire
+        double angle_h; //exprimé en heure (décimal)
+        int angle_h0; //exprimé en heure la plus proche
 
         #region VALEURS        
         public int _code_Emp1
@@ -119,60 +125,6 @@ namespace LocalisationHoraire_NET6_lib
         Brush color;
         #endregion
 
-        #region TEXTE
-        //public string _Saisie_complete
-        //{
-        //    get => Saisie_complete; set
-        //    {
-        //        if (Saisie_complete == value) return;
-        //        Saisie_complete = value;
-        //        OnPropertyChanged("_Saisie_complete");
-        //    }
-        //}
-        //string Saisie_complete = "1 - 12";
-        public Visibility _textShow
-        {
-            get => textShow;
-            set
-            {
-                if (textShow == value) return;
-                textShow = value;
-                OnPropertyChanged("_textShow");
-            }
-        }
-        Visibility textShow = Visibility.Visible;
-
-        /// <summary>
-        /// Definition d'un dependency property pour effectuer le binding sur la vue
-        /// https://stackoverflow.com/questions/1636807/what-exactly-does-wpf-data-bindings-relativesource-findancestor-do
-        /// </summary>
-        public static readonly DependencyProperty _textProperty =
-            DependencyProperty.Register(
-                "Horaire",
-                typeof(string),
-                typeof(LocalisationHoraire),
-                new FrameworkPropertyMetadata(null));
-
-        public string Horaire
-        {
-            get { return (string)GetValue(_textProperty); }
-            set { SetValue(_textProperty, value); }
-        }
-
-        public bool _LoseTextFocusOnMouseLeave
-        {
-            get => loseTextFocusOnMouseLeave;
-            set
-            {
-                if (_LoseTextFocusOnMouseLeave == value) return;
-                loseTextFocusOnMouseLeave = value;
-                OnPropertyChanged("_LoseTextFocusOnMouseLeave");
-            }
-        }
-        bool loseTextFocusOnMouseLeave;
-
-        #endregion
-
         #region MARKS
         public Brush _markColor
         {
@@ -223,7 +175,7 @@ namespace LocalisationHoraire_NET6_lib
         double markSize = 8;
         #endregion
 
-
+        #region Constructeur & Initialisations
         public LocalisationHoraire()
         {
             loaded = false;
@@ -274,22 +226,32 @@ namespace LocalisationHoraire_NET6_lib
             }
 
             _Reset();
+            _debug.Visibility = debug ? Visibility.Visible : Visibility.Hidden;
         }
+        #endregion
 
         internal void _Reset()
         {
+            Marks_Hidden();
             foreach (Secteur s in secteurs.Values)
             {
                 s._arc_Horaire_actif = false;
                 s._arc_antiHoraire_actif = false;
+            }
+
+            start = 0;
+            end = 0;
+
+            step = 0;
+        }
+
+        void Marks_Hidden()
+        {
+            foreach (Secteur s in secteurs.Values)
+            {
                 s._mark1_Visibility = Visibility.Hidden;
                 s._mark2_Visibility = Visibility.Hidden;
             }
-            concerned_values = new List<Secteur>();
-            start = 0;
-            end = 0;
-            //temp_end = 0;
-            step = 0;
         }
 
         public void _SetValue()
@@ -297,6 +259,7 @@ namespace LocalisationHoraire_NET6_lib
             _SetValue(_code_Emp1, _code_Emp2);
         }
 
+        //par défaut on a au moins une valeur sur "end" / "val2"
         public void _SetValue(int val1, int val2)
         {
             if (!loaded) return;
@@ -324,36 +287,30 @@ namespace LocalisationHoraire_NET6_lib
                 }
             }
 
-            //_ActiveSecteurs(false);
-            _ActiveSecteurs();
+            //foreach (Secteur s in secteurs.Values)
+            //{
+            //    s._mark1_Visibility = Visibility.Hidden;
+            //    s._mark2_Visibility = Visibility.Hidden;
+            //}
+            _ActiveArcs();
+
+            Debug();
         }
 
-        void _ActiveSecteurs()//bool full = true)
+        void _ActiveArcs()
         {
             //algo : avec un premier élément (=start)
             //-> le 2ème est voisin ?
 
-            //if (start != 0 && temp_end != 0 && temp_end != start)
-            //{
-            //    int diff = start - temp_end;
-            //    int diff_abs = Math.Abs(diff);
-            //    senshoraire = 0;
-            //    if (diff_abs < 3)
-            //        senshoraire = (diff < 0) ? 1 : -1;
-            //    else if (diff_abs > 9)
-            //        senshoraire = (diff > 0) ? 1 : -1;
-            //}
-
             if (concerned_values.Count > 1)
             {
-                int val1 = concerned_values[0]._heure;
-                //int val2 = concerned_values[1]._heure;
-                //int diff = val1 - val2;
+                //on active tous les secteurs inclus dans les bornes ET pour les secteurs extrêmes on n'active que les arcs nécessaires
+                int val_first = concerned_values[0]._heure;
                 int val_last = (end == 0) ? concerned_values[concerned_values.Count - 1]._heure : end;
 
                 foreach (Secteur s in secteurs.Values)
                 {
-                    if (s._heure == val1)
+                    if (s._heure == val_first)
                     {
                         s._arc_Horaire_actif = concerned_values.Contains(s);
                         s._arc_antiHoraire_actif = false;
@@ -369,40 +326,27 @@ namespace LocalisationHoraire_NET6_lib
                         s._arc_antiHoraire_actif = concerned_values.Contains(s);
                     }
                 }
-
-                //if (full)
-                //{
-                //    if (senshoraire > 0)
-                //    {
-                //        _code_Emp1 = start;
-                //        _code_Emp2 = (end == 0) ? val_last : end;
-                //    }
-
-                //    if (senshoraire < 0)
-                //    {
-                //        _code_Emp2 = start;
-                //        _code_Emp1 = (end == 0) ? val_last : end;
-                //    }
-                //}
             }
             else if (concerned_values.Count == 1)
             {
-                foreach (var s in secteurs)
+                //on n'active QUE le secteur en activant ses 2 arcs
+                foreach (Secteur s in secteurs.Values)
                 {
-                    if (concerned_values[0] == s.Value)
+                    if (s == concerned_values[0])
                     {
-                        s.Value._arc_Horaire_actif = true;
-                        s.Value._arc_antiHoraire_actif = true;
+                        s._arc_Horaire_actif = true;
+                        s._arc_antiHoraire_actif = true;
                     }
                     else
                     {
-                        s.Value._arc_Horaire_actif = false;
-                        s.Value._arc_antiHoraire_actif = false;
+                        s._arc_Horaire_actif = false;
+                        s._arc_antiHoraire_actif = false;
                     }
                 }
             }
             else
             {
+                //on désactive tout les arcs
                 foreach (var s in secteurs)
                 {
                     s.Value._arc_Horaire_actif = false;
@@ -411,25 +355,15 @@ namespace LocalisationHoraire_NET6_lib
             }
         }
 
-        Secteur GetSecteur(object sender)
-        {
-            return (Secteur)sender;
-        }
-
         Secteur GetSecteur()
         {
             return secteurs[angle_h0];
         }
 
-        double angle;
-        double angle_h;
-        int angle_h0;
-
-        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        void AngleCompute()
         {
-            Point m = e.GetPosition(_canvas);
-            int X = (int)(m.X - _canvas.Width / 2);
-            int Y = -(int)(m.Y - _canvas.Height / 2);
+            X = (mouse_position.X - _canvas.Width / 2);
+            Y = -(mouse_position.Y - _canvas.Height / 2);
 
             angle = Math.Atan2(X, Y) / Math.PI * 180;
             if (angle < 0) angle += 360;
@@ -437,18 +371,65 @@ namespace LocalisationHoraire_NET6_lib
             angle_h = angle / 30;
 
             angle_h0 = (int)Math.Round(angle_h, 0);
-            if (angle_h0 == 0) angle_h0 = 12;
 
-            if (_debug.Visibility == Visibility.Visible)
-                _debug.Text =
-                    m.X.ToString("F2") + " \t " + m.Y.ToString("F2") + "\n" + 
-                    X + " \t " + Y + "\n" + 
-                    angle.ToString("F1") + "°\n" +
-                    angle_h.ToString("F2") + "\n" +
-                    angle_h0 + "h\n" +
-                    start + "h → " + end + "h\n" +
-                    start * 30 + " \t " + end * 30 + "\n"
-                    ;
+            if (angle_h0 == 0) angle_h0 = 12;
+        }
+
+        void Debug()
+        {
+            if (!debug) return;
+
+            string[] msg = new string[]
+            {
+                "Step " + step,
+                mouse_position.X.ToString("F2") + " \t " + mouse_position.Y.ToString("F2"),
+                X.ToString("F0") + " \t " + Y.ToString("F0"),
+                angle.ToString("F1") + "°",
+                angle_h.ToString("F2"),
+                angle_h0 + "h",
+                start + "h → " + end + "h",
+                start * 30 + " \t " + end * 30
+            };
+
+            _debug.Text = string.Join("\n", msg);
+        }
+
+        void Reset_Asked()
+        {
+            _Reset();
+            _SelectedHourChange?.Invoke(new int[2] { 0, 0 }, null);
+
+        }
+
+        void Canvas_MouseEnter(object sender, MouseEventArgs e)
+        {
+            switch (step)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    if (secteurs.ContainsKey(start))
+                        secteurs[start]._mark1_Visibility = Visibility.Visible;
+                    break;
+
+                case 2:
+                    if (secteurs.ContainsKey(start))
+                        secteurs[start]._mark1_Visibility = Visibility.Visible;
+                    if (secteurs.ContainsKey(end))
+                        secteurs[end]._mark2_Visibility = Visibility.Visible;
+                    break;
+
+                case 3:
+                    break;
+            }
+        }
+
+        void Canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            mouse_position = e.GetPosition(_canvas);
+
+            AngleCompute();
 
             Secteur s = GetSecteur();
 
@@ -466,6 +447,27 @@ namespace LocalisationHoraire_NET6_lib
                         if (previous_sector != null)
                             previous_sector._mark2_Visibility = Visibility.Hidden;
                         s._mark2_Visibility = Visibility.Visible;
+
+
+
+
+                        //int A_tmp, B_tmp;
+                        //if (start < end)
+                        //{
+                        //    A_tmp = start;
+                        //    B_tmp = end;
+                        //}
+                        //else
+                        //{
+                        //    B_tmp = start;
+                        //    A_tmp = end;
+                        //}
+
+                        //// A -> B ?
+                        //if (A_tmp * 30 < angle && angle < B_tmp * 30)
+                        //    _SetValue(A_tmp, B_tmp);
+                        //else
+                        //    _SetValue(B_tmp, A_tmp);
                         break;
 
                     case 2:
@@ -487,55 +489,73 @@ namespace LocalisationHoraire_NET6_lib
                         else
                             _SetValue(B, A);
                         break;
+
                     case 3:
                         break;
                 }
                 previous_sector = s;
             }
+
+            Debug();
         }
 
-        private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
+        void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Secteur s = GetSecteur();
 
             //click droit = reset
-            if (((MouseButtonEventArgs)e).RightButton == MouseButtonState.Pressed)
+            if (e.RightButton == MouseButtonState.Pressed)
             {
-                _Reset();
+                Reset_Asked();
                 //redessine le marqueur sur ce secteur
                 s._mark1_Visibility = Visibility.Visible;
-                _SelectedHourChange?.Invoke(new int[2] { 0, 0 }, null);
-                return;
             }
-
-            //click gauche => step by step
-            switch (step)
+            else
             {
-                case 0:
-                    s._arc_antiHoraire_actif = true;
-                    s._arc_Horaire_actif = true;
-                    start = s._heure;
-                    step = 1;
-                    break;
+                //click gauche => step by step
+                switch (step)
+                {
+                    case 0:
+                        start = s._heure;
+                        step = 1;
+                        break;
 
-                case 1:
-                    s._mark2_Visibility = Visibility.Visible;
-                    end = s._heure;
-                    step = 2;
-                    break;
+                    case 1:
+                        s._mark2_Visibility = Visibility.Visible;
+                        end = s._heure;
 
-                case 2:
-                    //validation du sens
-                    secteurs[start]._mark1_Visibility = Visibility.Hidden;
-                    secteurs[start]._mark2_Visibility = Visibility.Hidden;
+                        if (start == end) // cas position ponctuelle
+                            SaisieTermine();
+                        else
+                            step = 2;
+                        break;
 
-                    secteurs[end]._mark1_Visibility = Visibility.Hidden;
-                    secteurs[end]._mark2_Visibility = Visibility.Hidden;
+                    case 2:
+                        SaisieTermine();
+                        break;
+                }
 
-                    step = 3;
-                    _SelectedHourChange?.Invoke(new int[2] { start, end }, null);
-                    break;
+                Debug();
             }
-        }      
+
+            void SaisieTermine()
+            {
+                //Masquage des marks
+                secteurs[start]._mark1_Visibility = Visibility.Hidden;
+                secteurs[start]._mark2_Visibility = Visibility.Hidden;
+
+                secteurs[end]._mark1_Visibility = Visibility.Hidden;
+                secteurs[end]._mark2_Visibility = Visibility.Hidden;
+
+                step = 3;
+
+                _SelectedHourChange?.Invoke(new int[2] { start, end }, null);
+            }
+        }
+    
+        void Canvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Marks_Hidden();
+        }
     }
 }
